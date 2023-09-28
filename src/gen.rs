@@ -76,7 +76,7 @@ fn prepare_data(input: Input) -> syn::Result<Data> {
 
 fn generate_from_data(data: Data) -> syn::Result<TokenStream> {
     #[rustfmt::skip]
-    let Data { 
+    let Data {
         name, total_bits, used_bits, int_bits, frac_bits, pad_bits,
         inner_type, denominator, conversion_factor, signed, q_notation,
         used_mask, min_float, max_float, min_inner, max_inner

@@ -32,7 +32,7 @@ fn test_q12p5_add() {
 }
 
 /// Test that the `define_q_num` macro is hygienic.
-/// 
+///
 /// - If the macro is non-hygienic, it may refer to an unqualified `u8`. This is
 ///   a problem because `u8` could be shadowed. In the test below, it is
 ///   shadowed to refer to `u16`, which would result in an incorrect size of 2
