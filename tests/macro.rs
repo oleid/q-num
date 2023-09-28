@@ -33,7 +33,7 @@ fn test_macro_add() {
 fn test_shadowed_type() {
     #[allow(non_camel_case_types)]
     #[allow(dead_code)]
-    type u8=u16;
+    type u8 = u16;
     // If the macro is non-hygienic, it will use the shadowed type.
     // If the macro is hygienic, it will use `core::primitive::u8`.
     define_q_num!(X, Q4.2);

@@ -8,7 +8,7 @@
 //! This library provides the `define_q_num!` procedural macro (evaluated at
 //! compile time) to define a signed/unsigned binary fixed-point number type. It
 //! uses ARM-style Q notation: `Qm.n` (signed) or `UQm.n` (unsigned), where:
-//! 
+//!
 //! - `m` is the number of integer bits, and
 //! - `n` is the number of fractional bits.
 //!
@@ -24,7 +24,7 @@
 //! For example, using the UQ3.2 specification, the bit pattern `0b10111`
 //! represents the value 5.75. Keeping in mind the denominator is 2 ^ 2 = 4,
 //! there are two ways to see this:
-//! 
+//!
 //! - 0b10111 / 4 == 23 / 4 == 5.75
 //! - 0b101 + 0b11 / 4 == 5 + 3/4 == 5.75
 //!
@@ -43,20 +43,20 @@
 //!
 //! This defines a new type named `MyQ`, a signed fixed-point number represented
 //! internally with 8 bits:
-//! 
+//!
 //! - 6 bits for the integer part
 //! - 2 bits for the fractional part
 //!
 //! ## Also Defined: Associated Methods
 //!
 //! The example above also defines the following floating-point conversions:
-//! 
+//!
 //! - `MyQ::from(f64) -> MyQ`
 //! - `f64::from(MyQ) -> f64`
 //!
 //! It also defines the following getter and setter to access the internal
 //! representation:
-//! 
+//!
 //! - `MyQ.to_bits() -> i8`
 //! - `MyQ::from_bits(i8) -> MyQ`
 //!
