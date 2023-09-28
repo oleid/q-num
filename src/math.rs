@@ -1,36 +1,9 @@
-use syn::Type;
-
-// Unsigned integer qualified type
-pub fn signed_int_qualified(bits: u8) -> syn::Result<Type> {
-    qualified_type(&signed_integer_type_string(bits)?)
-}
-
-// Unsigned integer qualified type
-pub fn unsigned_int_qualified(bits: u8) -> syn::Result<Type> {
-    qualified_type(&unsigned_integer_type_string(bits)?)
-}
-
-fn qualified_type(s: &str) -> syn::Result<Type> {
-    let ty = syn::parse_str(&format!("core::primitive::{s}"))?;
-    Ok(ty)
-}
-
-// Signed integer unqualified string
-fn signed_integer_type_string(bits: u8) -> syn::Result<String> {
-    integer_type_string(bits, 'i')
-}
-
-// Unsigned integer unqualified string
-fn unsigned_integer_type_string(bits: u8) -> syn::Result<String> {
-    integer_type_string(bits, 'u')
-}
-
-fn integer_type_string(bits: u8, prefix: char) -> syn::Result<String> {
-    match power_of_two_bit_length(bits) {
-        Some(bits) => Ok(format!("{prefix}{bits}")),
+pub fn total_bits(used_bits: u8) -> syn::Result<u8> {
+    match power_of_two_bit_length(used_bits) {
+        Some(n) => Ok(n),
         None => Err(syn::Error::new_spanned(
-            bits.to_string(),
-            format!("{prefix}64 is the largest supported type"),
+            used_bits.to_string(),
+            format!("{} is larger than 64 bits", used_bits),
         )),
     }
 }

@@ -35,7 +35,7 @@ fn test_shadowed_type() {
     #[allow(dead_code)]
     type u8 = u16;
     // If the macro is non-hygienic, it will use the shadowed type.
-    // If the macro is hygienic, it will use `core::primitive::u8`.
+    // If the macro is hygienic, it will use `::core::primitive::u8`.
     define_q_num!(X, Q4.2);
     // The correct size is 1 bytes = 8 bits.
     assert_eq!(std::mem::size_of::<X>(), 1);

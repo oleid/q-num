@@ -1,39 +1,45 @@
-use crate::int::power_of_two_bit_length;
-use crate::int::{signed_int_qualified, unsigned_int_qualified};
+use crate::literal::{hex_literal, used_mask_literal};
+use crate::math::total_bits;
 use crate::parse::Input;
+use crate::types::{core_primitive_type, signed_int_qualified, unsigned_int_qualified};
 use proc_macro2::{Literal, TokenStream};
 use quote::quote;
+use syn::{Ident, Type};
+
+struct Data {
+    name: Ident,
+    total_bits: u8,
+    used_bits: u8,
+    int_bits: u8,
+    frac_bits: u8,
+    pad_bits: u8,
+    inner_type: Type,
+    denominator: f64,
+    conversion_factor: f64,
+    signed: bool,
+    q_notation: String,
+    used_mask: Literal,
+    min_float: f64,
+    max_float: f64,
+    min_inner: Literal,
+    max_inner: Literal,
+}
 
 pub fn generate(input: Input) -> syn::Result<TokenStream> {
+    let data = prepare_data(input)?;
+    generate_from_data(data)
+}
+
+#[rustfmt::skip]
+fn prepare_data(input: Input) -> syn::Result<Data> {
     assert!(input.int_bits >= 2);
     let int_bits = input.int_bits;
     let frac_bits = input.frac_bits;
-    let used_bits = int_bits + frac_bits;
-    let total_bits = match power_of_two_bit_length(used_bits) {
-        Some(n) => n,
-        None => {
-            return Err(syn::Error::new_spanned(
-                used_bits.to_string(),
-                format!("{} is larger than 64 bits", used_bits),
-            ))
-        }
-    };
+    let used_bits = input.int_bits + input.frac_bits;
+    let total_bits = total_bits(used_bits)?;
     let pad_bits = total_bits - used_bits;
-
     let denominator = (1 << frac_bits) as f64;
-    let conversion_factor = (1 << (frac_bits + pad_bits)) as f64;
-    
     let signed = input.signed;
-    let q_notation = if signed {
-        format!("Q{int_bits}.{frac_bits}")
-    } else {
-        format!("UQ{int_bits}.{frac_bits}")
-    };
-    let ty = if signed {
-        signed_int_qualified(used_bits)?
-    } else {
-        unsigned_int_qualified(used_bits)?
-    };
     let (min_float, max_float) = if signed {
         let x = (1 << (int_bits - 1)) as f64;
         (-x, x - 1.0 / denominator)
@@ -47,59 +53,80 @@ pub fn generate(input: Input) -> syn::Result<TokenStream> {
         let n = (1 << used_bits) as u64;
         (hex_literal(0), hex_literal(n - 1))
     };
-    let name = input.name;
+    Ok(Data {
+        name: input.name,
+        total_bits, used_bits, int_bits, frac_bits, pad_bits,
+        inner_type: if input.signed {
+            signed_int_qualified(used_bits)?
+        } else {
+            unsigned_int_qualified(used_bits)?
+        },
+        denominator,
+        conversion_factor: (1 << (frac_bits + pad_bits)) as f64,
+        signed,
+        q_notation: if signed {
+            format!("Q{int_bits}.{frac_bits}")
+        } else {
+            format!("UQ{int_bits}.{frac_bits}")
+        },
+        min_float, max_float, min_inner, max_inner,
+        used_mask: used_mask_literal(total_bits, pad_bits),
+    })
+}
 
-    let used_mask = used_mask_literal(total_bits, pad_bits);
+fn generate_from_data(data: Data) -> syn::Result<TokenStream> {
+    #[rustfmt::skip]
+    let Data { 
+        name, total_bits, used_bits, int_bits, frac_bits, pad_bits,
+        inner_type, denominator, conversion_factor, signed, q_notation,
+        used_mask, min_float, max_float, min_inner, max_inner
+    } = data;
+    let u8 = core_primitive_type("u8")?;
+    let f64 = core_primitive_type("f64")?;
     Ok(quote! {
         #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-        pub struct #name(#ty);
+        pub struct #name(#inner_type);
 
         impl #name {
             pub const Q_NOTATION: &'static str = #q_notation;
             pub const SIGNED: bool = #signed;
-
-            pub const TOTAL_BITS: core::primitive::u8 = #total_bits;
-            pub const USED_BITS: core::primitive::u8 = #used_bits;
-            pub const INT_BITS: core::primitive::u8 = #int_bits;
-            pub const FRAC_BITS: core::primitive::u8 = #frac_bits;
-            pub const PAD_BITS: core::primitive::u8 = #pad_bits;
-
-            pub const USED_MASK: #ty = #used_mask;
-
-            pub const MIN_FLOAT: core::primitive::f64 = #min_float;
-            pub const MAX_FLOAT: core::primitive::f64 = #max_float;
+            pub const TOTAL_BITS: #u8 = #total_bits;
+            pub const USED_BITS: #u8 = #used_bits;
+            pub const INT_BITS: #u8 = #int_bits;
+            pub const FRAC_BITS: #u8 = #frac_bits;
+            pub const PAD_BITS: #u8 = #pad_bits;
+            pub const USED_MASK: #inner_type = #used_mask;
+            pub const MIN_FLOAT: #f64 = #min_float;
+            pub const MAX_FLOAT: #f64 = #max_float;
             pub const MIN: Self = Self(#min_inner);
             pub const MAX: Self = Self(#max_inner);
-
-            pub const DENOMINATOR: core::primitive::f64 = #denominator;
-            pub const CONVERSION_FACTOR: core::primitive::f64 = #conversion_factor;
+            pub const DENOMINATOR: #f64 = #denominator;
+            pub const CONVERSION_FACTOR: #f64 = #conversion_factor;
 
             /// Returns the inner value.
-            pub fn to_bits(self) -> #ty {
-                self.0
-            }
+            pub fn to_bits(self) -> #inner_type { self.0 }
 
             /// Builds a new instance using the provided bits;
             ///
             /// Note: ensures unused bits (the padding) are zeroed out.
-            pub fn from_bits(bits: #ty) -> Self {
+            pub fn from_bits(bits: #inner_type) -> Self {
                 Self(bits & Self::USED_MASK)
             }
         }
 
-        impl From<core::primitive::f64> for #name {
-            fn from(value: core::primitive::f64) -> Self {
+        impl From<#f64> for #name {
+            fn from(value: #f64) -> Self {
                 if !(Self::MIN_FLOAT..=Self::MAX_FLOAT).contains(&value) {
                     panic!("{} is out of range for {}", value, Self::Q_NOTATION);
                 }
-                let n = (value * Self::CONVERSION_FACTOR) as #ty;
+                let n = (value * Self::CONVERSION_FACTOR) as #inner_type;
                 Self(n & Self::USED_MASK)
             }
         }
 
-        impl From<#name> for core::primitive::f64 {
+        impl From<#name> for #f64 {
             fn from(value: #name) -> Self {
-                (value.0 as core::primitive::f64) / #name::CONVERSION_FACTOR
+                (value.0 as #f64) / #name::CONVERSION_FACTOR
             }
         }
 
@@ -110,46 +137,5 @@ pub fn generate(input: Input) -> syn::Result<TokenStream> {
                 Self(self.0 + rhs.0)
             }
         }
-
     })
-}
-
-/// Converts the provided value to a hex literal.
-///
-/// Note: this function will panic if the value cannot be parsed as a
-/// `proc_macro2::Literal`. This is the best choice, because that would be a bug
-/// outside of this crate's control.
-fn hex_literal(value: u64) -> Literal {
-    format!("{:#x}", value).parse().unwrap()
-}
-
-/// e.g. 0b1111_1000 if used_bits is 5 and pad_bits is 3
-fn used_mask_literal(total_bits: u8, pad_bits: u8) -> Literal {
-    match total_bits {
-        8 => {
-            let mut x: u8 = 0xFF;
-            x >>= pad_bits;
-            x <<= pad_bits;
-            hex_literal(x as u64)
-        }
-        16 => {
-            let mut x: u16 = 0xFFFF;
-            x >>= pad_bits;
-            x <<= pad_bits;
-            hex_literal(x as u64)
-        }
-        32 => {
-            let mut x: u32 = 0xFFFF_FFFF;
-            x >>= pad_bits;
-            x <<= pad_bits;
-            hex_literal(x as u64)
-        }
-        64 => {
-            let mut x: u64 = 0xFFFF_FFFF_FFFF_FFFF;
-            x >>= pad_bits;
-            x <<= pad_bits;
-            hex_literal(x)
-        }
-        _ => panic!(),
-    }
 }

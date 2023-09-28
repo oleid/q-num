@@ -109,8 +109,10 @@
 //! https://en.wikipedia.org/wiki/Q_(number_format)
 
 mod gen;
-mod int;
+mod literal;
+mod math;
 mod parse;
+mod types;
 
 use crate::gen::generate;
 use crate::parse::Input;
