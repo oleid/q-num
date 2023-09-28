@@ -6,7 +6,7 @@ use proc_macro2::Literal;
 /// `proc_macro2::Literal`. This is the best choice, because that would be a bug
 /// outside of this crate's control.
 pub fn hex_literal(value: u64) -> Literal {
-    format!("{:#x}", value).parse().unwrap()
+    format!("{:#X}", value).parse().unwrap()
 }
 
 /// e.g. 0b1111_1000 if used_bits is 5 and pad_bits is 3
