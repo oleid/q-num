@@ -39,3 +39,30 @@ pub fn used_mask_literal(total_bits: u8, pad_bits: u8) -> Literal {
         _ => panic!(),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use quote::quote;
+
+    #[test]
+    fn test_used_mask_literal_8_2() {
+        let literal = used_mask_literal(8, 2);
+        let s = quote! { #literal }.to_string();
+        assert_eq!(s, "0xFC");
+    }
+
+    #[test]
+    fn test_used_mask_literal_16_6() {
+        let literal = used_mask_literal(16, 6);
+        let s = quote! { #literal }.to_string();
+        assert_eq!(s, "0xFFC0");
+    }
+
+    #[test]
+    fn test_used_mask_literal_32_11() {
+        let literal = used_mask_literal(32, 11);
+        let s = quote! { #literal }.to_string();
+        assert_eq!(s, "0xFFFFF800");
+    }
+}
