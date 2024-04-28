@@ -86,7 +86,7 @@
 //!
 //! ## Numerical Properties
 //!
-//! The value of a Q numbers is the ratio of the storage number and a fixed
+//! The value of a Q number is the ratio of the storage number and a fixed
 //! denominator.
 //!
 //! ## Internals
