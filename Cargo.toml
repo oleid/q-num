@@ -1,7 +1,16 @@
 [package]
 name = "q-num"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
+license = "Apache-2.0"
+description = "Q notation for fixed-point numbers via a proc_macro."
+repository = "https://github.com/xpe/q-num"
+readme = "README.md"
+keywords = ["fixed-point", "math", "numerics"]
+categories = ["mathematics", "encoding"]
+# homepage = ""
+# Per https://doc.rust-lang.org/cargo/reference/manifest.html#the-homepage-field :
+# "Do not make homepage redundant with either the documentation or repository values."
 
 [dependencies]
 proc-macro2 = "1.0.81"
