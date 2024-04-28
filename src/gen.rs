@@ -32,7 +32,7 @@ pub fn generate(input: Input) -> syn::Result<TokenStream> {
 
 #[rustfmt::skip]
 fn prepare_data(input: Input) -> syn::Result<Data> {
-    assert!(input.int_bits >= 2);
+    assert!(input.int_bits >= 1);
     let int_bits = input.int_bits;
     let frac_bits = input.frac_bits;
     let used_bits = input.int_bits + input.frac_bits;
