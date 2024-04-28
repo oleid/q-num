@@ -31,6 +31,40 @@ fn test_q12p5_add() {
     assert_eq!(x1 + x2, x3)
 }
 
+/// Spot check the macro-generated constants for `Q1.6`.
+#[test]
+fn test_q1p6_constants() {
+    define_q_num!(X, Q1.6);
+    assert_eq!(X::TOTAL_BITS, 8);
+    assert_eq!(std::mem::size_of::<X>(), 1);
+    assert_eq!(X::USED_BITS, 7);
+    assert_eq!(X::INT_BITS, 1);
+    assert_eq!(X::FRAC_BITS, 6);
+    assert_eq!(X::PAD_BITS, 1);
+    assert_eq!(X::DENOMINATOR, 64.0);
+    assert_eq!(X::CONVERSION_FACTOR, 128.0);
+    assert_eq!(X::USED_MASK as u8, 0xFE);
+    assert_eq!(X::MIN_FLOAT, -1.0);
+    assert_eq!(X::MAX_FLOAT, 0.984375);
+}
+
+/// Spot check the macro-generated constants for `Q1.7`.
+#[test]
+fn test_q1p7_constants() {
+    define_q_num!(X, Q1.7);
+    assert_eq!(X::TOTAL_BITS, 8);
+    assert_eq!(std::mem::size_of::<X>(), 1);
+    assert_eq!(X::USED_BITS, 8);
+    assert_eq!(X::INT_BITS, 1);
+    assert_eq!(X::FRAC_BITS, 7);
+    assert_eq!(X::PAD_BITS, 0);
+    assert_eq!(X::DENOMINATOR, 128.0);
+    assert_eq!(X::CONVERSION_FACTOR, 128.0);
+    assert_eq!(X::USED_MASK as u8, 0xFF);
+    assert_eq!(X::MIN_FLOAT, -1.0);
+    assert_eq!(X::MAX_FLOAT, 0.9921875);
+}
+
 /// Test that the `define_q_num` macro is hygienic.
 ///
 /// - If the macro is non-hygienic, it may refer to an unqualified `u8`. This is
