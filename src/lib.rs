@@ -35,9 +35,9 @@
 //! ```
 //! # use q_num::define_q_num;
 //! define_q_num!(X, Q6.2);
-//! let a = X::from(13.75);
-//! let b = X::from(-2.25);
-//! let c = X::from(11.5);
+//! let a = X::try_from(13.75).unwrap();
+//! let b = X::try_from(-2.25).unwrap();
+//! let c = X::try_from(11.5).unwrap();
 //! assert_eq!(a + b, c);
 //! ```
 //!

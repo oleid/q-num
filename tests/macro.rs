@@ -21,9 +21,9 @@ fn test_q12p5_constants() {
 #[test]
 fn test_q12p5_add() {
     define_q_num!(X, Q12.5);
-    let x1 = X::from(500.25);
-    let x2 = X::from(-744.75);
-    let x3 = X::from(-244.5);
+    let x1 = X::try_from(500.25).unwrap();
+    let x2 = X::try_from(-744.75).unwrap();
+    let x3 = X::try_from(-244.5).unwrap();
     let b1 = x1.to_bits();
     let b2 = x2.to_bits();
     let b3 = x3.to_bits();
@@ -89,7 +89,7 @@ fn test_q5p3_inner_values() {
     define_q_num!(Q, UQ5.3);
     let mut value = 0.0;
     for byte in 0..0b1111_1111 {
-        let q = Q::from(value);
+        let q = Q::try_from(value).unwrap();
         assert_eq!(q.to_bits(), byte);
         value += 0.125;
     }
@@ -103,7 +103,7 @@ fn test_q4p2_inner_values() {
     define_q_num!(Q, UQ4.2);
     let mut value = 0.0;
     for byte in (0..0b1111_1100).step_by(0b100) {
-        let q = Q::from(value);
+        let q = Q::try_from(value).unwrap();
         assert_eq!(q.to_bits(), byte);
         value += 0.25;
     }
@@ -114,5 +114,5 @@ fn test_q4p2_inner_values() {
 #[should_panic]
 fn test_q4p2_out_of_range() {
     define_q_num!(Q, Q4.2);
-    let _ = Q::from(16.00);
+    let _ = Q::try_from(16.00).unwrap();
 }
