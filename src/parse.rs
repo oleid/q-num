@@ -4,6 +4,7 @@ use syn::parse::{Parse, ParseStream};
 use syn::{Ident, LitInt, Token, Visibility};
 
 pub struct Input {
+    #[allow(dead_code)]
     pub visibility: Option<Visibility>,
     pub name: Ident,
     pub signed: bool,
