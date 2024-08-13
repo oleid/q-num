@@ -114,13 +114,16 @@ fn generate_from_data(data: Data) -> syn::Result<TokenStream> {
             }
         }
 
-        impl From<#f64> for #name {
-            fn from(value: #f64) -> Self {
+        impl TryFrom<#f64> for #name {
+            type Error = Box<dyn std::error::Error + Send + Sync>;
+            fn try_from(value: #f64) -> std::result::Result<Self, Self::Error> {
                 if !(Self::MIN_FLOAT..=Self::MAX_FLOAT).contains(&value) {
-                    panic!("{} is out of range for {}", value, Self::Q_NOTATION);
+                    Err(format!("{} is out of range for {}", value, Self::Q_NOTATION).into())
                 }
-                let n = (value * Self::CONVERSION_FACTOR) as #inner_type;
-                Self(n & Self::USED_MASK)
+                else {
+                    let n = (value * Self::CONVERSION_FACTOR) as #inner_type;
+                    Ok(Self(n & Self::USED_MASK))
+                }
             }
         }
 
